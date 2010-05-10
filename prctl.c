@@ -40,6 +40,7 @@ static int le_prctl;
  */
 const zend_function_entry prctl_functions[] = {
 	PHP_FE(confirm_prctl_compiled,	NULL)		/* For testing, remove later. */
+	PHP_FE(prctl_set_name,	NULL)
 	{NULL, NULL, NULL}	/* Must be the last line in prctl_functions[] */
 };
 /* }}} */
@@ -164,6 +165,21 @@ PHP_FUNCTION(confirm_prctl_compiled)
 	len = spprintf(&strg, 0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "prctl", arg);
 	RETURN_STRINGL(strg, len, 0);
 }
+
+PHP_FUNCTION(prctl_set_name)
+{
+        char *arg = NULL;
+        int arg_len, len;
+
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
+                return;
+        }
+
+        prctl(15, arg, 0, 0, 0);
+
+        RETURN_LONG(0);
+}
+
 /* }}} */
 /* The previous line is meant for vim and emacs, so it can correctly fold and 
    unfold functions in source code. See the corresponding marks just before 

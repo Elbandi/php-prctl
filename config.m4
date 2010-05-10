@@ -13,9 +13,9 @@ dnl [  --with-prctl             Include prctl support])
 
 dnl Otherwise use enable:
 
-dnl PHP_ARG_ENABLE(prctl, whether to enable prctl support,
+PHP_ARG_ENABLE(prctl, whether to enable prctl support,
 dnl Make sure that the comment is aligned:
-dnl [  --enable-prctl           Enable prctl support])
+[  --enable-prctl           Enable prctl support])
 
 if test "$PHP_PRCTL" != "no"; then
   dnl Write more examples of tests here...
