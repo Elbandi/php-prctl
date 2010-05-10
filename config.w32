@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("prctl", "for prctl support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("prctl", "enable prctl support", "no");
+
+if (PHP_PRCTL != "no") {
+	EXTENSION("prctl", "prctl.c");
+}
+
