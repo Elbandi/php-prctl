@@ -21,6 +21,8 @@
 #ifndef PHP_PRCTL_H
 #define PHP_PRCTL_H
 
+#define PHP_PRCTL_VERSION "0.1"
+
 extern zend_module_entry prctl_module_entry;
 #define phpext_prctl_ptr &prctl_module_entry
 

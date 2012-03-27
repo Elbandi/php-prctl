@@ -59,7 +59,7 @@ zend_module_entry prctl_module_entry = {
 	PHP_RSHUTDOWN(prctl),	/* Replace with NULL if there's nothing to do at request end */
 	PHP_MINFO(prctl),
 #if ZEND_MODULE_API_NO >= 20010901
-	"0.1", /* Replace with version number for your extension */
+	PHP_PRCTL_VERSION, /* Replace with version number for your extension */
 #endif
 	STANDARD_MODULE_PROPERTIES
 };
@@ -136,6 +136,7 @@ PHP_MINFO_FUNCTION(prctl)
 {
 	php_info_print_table_start();
 	php_info_print_table_header(2, "prctl support", "enabled");
+	php_info_print_table_header(2, "version", PHP_PRCTL_VERSION);
 	php_info_print_table_end();
 
 	/* Remove comments if you have entries in php.ini
