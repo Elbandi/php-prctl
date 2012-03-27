@@ -26,6 +26,7 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_prctl.h"
+#include <sys/prctl.h>
 
 /* If you declare any globals in php_prctl.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(prctl)
@@ -176,7 +177,7 @@ PHP_FUNCTION(prctl_set_name)
                 return;
         }
 
-        prctl(15, arg, 0, 0, 0);
+        prctl(PR_SET_NAME, arg, 0, 0, 0);
 
         RETURN_LONG(0);
 }
