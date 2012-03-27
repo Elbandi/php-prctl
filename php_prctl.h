@@ -46,6 +46,9 @@ PHP_MINFO_FUNCTION(prctl);
 
 PHP_FUNCTION(confirm_prctl_compiled);	/* For testing, remove later. */
 PHP_FUNCTION(prctl_set_name);
+PHP_FUNCTION(prctl_get_name);
+PHP_FUNCTION(prctl_set_pdeathsig);
+PHP_FUNCTION(prctl_get_pdeathsig);
 
 /* 
   	Declare any global variables you may need between the BEGIN

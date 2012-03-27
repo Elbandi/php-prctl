@@ -27,6 +27,7 @@
 #include "ext/standard/info.h"
 #include "php_prctl.h"
 #include <sys/prctl.h>
+#include <signal.h>
 
 /* If you declare any globals in php_prctl.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(prctl)
@@ -42,6 +43,9 @@ static int le_prctl;
 const zend_function_entry prctl_functions[] = {
 	PHP_FE(confirm_prctl_compiled,	NULL)		/* For testing, remove later. */
 	PHP_FE(prctl_set_name,	NULL)
+	PHP_FE(prctl_get_name,	NULL)
+	PHP_FE(prctl_set_pdeathsig,	NULL)
+	PHP_FE(prctl_get_pdeathsig,	NULL)
 	{NULL, NULL, NULL}	/* Must be the last line in prctl_functions[] */
 };
 /* }}} */
@@ -181,6 +185,55 @@ PHP_FUNCTION(prctl_set_name)
 
         RETURN_LONG(0);
 }
+
+PHP_FUNCTION(prctl_get_name)
+{
+        char p_name[17] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+
+        if (zend_parse_parameters_none() == FAILURE) {
+                return;
+        }
+
+        prctl(PR_GET_NAME, p_name, 0, 0, 0);
+
+        RETVAL_STRING(p_name, 1);
+}
+
+PHP_FUNCTION(prctl_set_pdeathsig)
+{
+        long arg;
+
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &arg) == FAILURE) {
+                return;
+        }
+
+        if (arg < 0 || arg > SIGRTMAX) {
+                php_error_docref(NULL TSRMLS_CC, E_WARNING, "Signal has to be between 0 and %d", SIGRTMAX);
+                RETURN_FALSE;
+        }
+
+        if (!prctl(PR_SET_PDEATHSIG, arg, 0, 0, 0)) {
+                RETURN_TRUE;
+        } else {
+                RETURN_FALSE;
+        }
+}
+
+PHP_FUNCTION(prctl_get_pdeathsig)
+{
+        long arg;
+
+        if (zend_parse_parameters_none() == FAILURE) {
+                return;
+        }
+
+        if (!prctl(PR_GET_PDEATHSIG, &arg, 0, 0, 0)) {
+                RETURN_LONG(arg);
+        } else {
+                RETURN_FALSE;
+        }
+}
+
 
 /* }}} */
 /* The previous line is meant for vim and emacs, so it can correctly fold and 
