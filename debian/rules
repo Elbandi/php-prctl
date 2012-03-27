@@ -1,0 +1,82 @@
+#!/usr/bin/make -f
+BUILD5=$(CURDIR)/debian/php5-prctl
+PHP_EX5=$(shell /usr/bin/php-config5 --extension-dir)
+
+#export DH_VERBOSE=1
+
+DEB_HOST_GNU_TYPE    ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+
+CFLAGS += -O2 -Wall -fno-strict-aliasing
+
+# Enable IEEE-conformant floating point math on alphas (not the default)
+ifeq (alpha-linux-gnu,$(DEB_HOST_GNU_TYPE))
+	CFLAGS += -mieee
+endif
+
+ifeq ($(DEB_HOST_GNU_TYPE), $(findstring $(DEB_HOST_GNU_TYPE), ia64-linux-gnu powerpc64-linux-gnu))
+	CFLAGS += -g
+else
+	CFLAGS += -gstabs
+endif
+
+build:
+	@echo "Not use this."
+
+build-stamp:
+	dh_testdir
+	touch build-stamp
+
+build-stamp-php5: build-stamp
+	[ ! -f Makefile ] || $(MAKE) clean
+	phpize --clean
+	phpize5
+	chmod a+x ./configure
+	./configure --prefix=$(BUILD5)/usr --with-php-config=/usr/bin/php-config5
+	$(MAKE) DESTDIR=$(BUILD5)
+	touch build-stamp-php5
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -rf build-stamp build-stamp-php5
+	[ ! -f Makefile ] || $(MAKE) distclean
+	# to make pbuilder happy
+ifeq ($(shell which phpize),/usr/bin/phpize)
+	phpize --clean
+endif
+	dh_clean
+
+install: build-php5
+
+build-php5:
+build-php5: build-stamp-php5
+	dh_testdir
+	dh_testroot
+	dh_installdirs
+	install -D -m 644 modules/prctl.so debian/php5-prctl$(PHP_EX5)/prctl.so
+	install -D -m 644 debian/prctl.ini debian/php5-prctl/etc/php5/conf.d/prctl.ini
+
+binary-indep:
+
+binary-arch-php5:
+binary-arch-php5: build-php5
+	dh_testdir
+	dh_testroot
+	dh_installdirs
+	dh_installchangelogs
+	dh_installdocs
+	dh_install
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	echo "php:Depends=phpapi-`php-config5 --phpapi`" >> debian/php5-prctl.substvars
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary-arch: binary-arch-php5
+binary: binary-indep binary-arch
+.PHONY: build-php5 clean binary-indep binary-arch binary install

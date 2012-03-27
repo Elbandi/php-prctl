@@ -1,0 +1,2 @@
+version=3
+https://github.com/Elbandi/php-prctl/tags .*/tarball/(\d[\d\.]+)  debian  uupdate

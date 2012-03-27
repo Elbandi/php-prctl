@@ -1,0 +1,20 @@
+This package was debianized by Andras Elso <elso.andras@gmail.com> using dh-make-pecl
+on Tue, 27 Mar 2012 18:20:09 +0200
+
+It was downloaded from http://code.google.com/p/php-prctl/
+
+Upstream Author(s):
+
+    wuweixin
+
+Copyright:
+
+    Copyright (C) 2011 wuweixin
+
+License:
+
+    GPL version 3
+
+The Debian packaging is copyright 2009, Andras Elso <elso.andras@gmail.com> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
+
