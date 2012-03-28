@@ -260,8 +260,8 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 	int argstr_len = 0;
 	char name[17] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 	int result;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &arg) == FAILURE) {
-		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &argstr, &argstr_len) == FAILURE) {
+	if (zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, ZEND_NUM_ARGS() TSRMLS_CC, "|l", &arg) == FAILURE) {
+		if (zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, ZEND_NUM_ARGS() TSRMLS_CC, "s", &argstr, &argstr_len) == FAILURE) {
 			return;
 		}
 		if(option != PR_SET_NAME) {
