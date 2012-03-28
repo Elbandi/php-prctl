@@ -1,3 +1,15 @@
+php-prctl (0.1-2) unstable; urgency=low
+
+  [ Andras Elso ]
+  * get the module version from a define constant
+  * use predefined constant
+  * Refactor code based on https://github.com/seveas/python-prctl
+  * Register prctl constants
+  * Make zend_parse_parameters quiet
+  * Fix build depends
+
+ -- Andras Elso <elso.andras@gmail.com>  Wed, 28 Mar 2012 15:44:35 +0200
+
 php-prctl (0.1-1) unstable; urgency=low
 
   * Initial Release.
