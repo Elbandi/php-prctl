@@ -26,8 +26,10 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_prctl.h"
+#include "securebits.h"
+#include <sys/capability.h>
 #include <sys/prctl.h>
-#include <signal.h>
+#include <sys/signal.h>
 
 /* If you declare any globals in php_prctl.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(prctl)
@@ -42,10 +44,30 @@ static int le_prctl;
  */
 const zend_function_entry prctl_functions[] = {
 	PHP_FE(confirm_prctl_compiled,	NULL)		/* For testing, remove later. */
+	PHP_FE(prctl_capbset_read,	NULL)
+	PHP_FE(prctl_capbset_drop,	NULL)
+	PHP_FE(prctl_set_dumpable,	NULL)
+	PHP_FE(prctl_get_dumpable,	NULL)
+	PHP_FE(prctl_set_endian,	NULL)
+	PHP_FE(prctl_get_endian,	NULL)
+	PHP_FE(prctl_set_fpemu,	NULL)
+	PHP_FE(prctl_get_fpemu,	NULL)
+	PHP_FE(prctl_set_fpexc,	NULL)
+	PHP_FE(prctl_get_fpexc,	NULL)
+	PHP_FE(prctl_set_keepcaps,	NULL)
+	PHP_FE(prctl_get_keepcaps,	NULL)
 	PHP_FE(prctl_set_name,	NULL)
 	PHP_FE(prctl_get_name,	NULL)
 	PHP_FE(prctl_set_pdeathsig,	NULL)
 	PHP_FE(prctl_get_pdeathsig,	NULL)
+	PHP_FE(prctl_set_seccomp,	NULL)
+	PHP_FE(prctl_get_seccomp,	NULL)
+	PHP_FE(prctl_set_securebits,	NULL)
+	PHP_FE(prctl_get_securebits,	NULL)
+	PHP_FE(prctl_set_tsc,	NULL)
+	PHP_FE(prctl_get_tsc,	NULL)
+	PHP_FE(prctl_set_unalign,	NULL)
+	PHP_FE(prctl_get_unalign,	NULL)
 	{NULL, NULL, NULL}	/* Must be the last line in prctl_functions[] */
 };
 /* }}} */
@@ -171,69 +193,292 @@ PHP_FUNCTION(confirm_prctl_compiled)
 	len = spprintf(&strg, 0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "prctl", arg);
 	RETURN_STRINGL(strg, len, 0);
 }
+/* }}} */
 
-PHP_FUNCTION(prctl_set_name)
+/* Code get from: https://github.com/seveas/python-prctl */
+
+/* New in 2.6.32, but named and implemented inconsistently. The linux
+ * implementation has two ways of setting the policy to the default, and thus
+ * needs an extra argument. We ignore the first argument and always all
+ * PR_MCE_KILL_SET. This makes our implementation simpler and keeps the prctl
+ * interface more consistent
+ */
+#ifdef PR_MCE_KILL
+#define PR_GET_MCE_KILL PR_MCE_KILL_GET
+#define PR_SET_MCE_KILL PR_MCE_KILL
+#endif
+
+/* New in 2.6.XX (Ubuntu 10.10) */
+#define NOT_SET (-1)
+#ifdef PR_SET_PTRACER
+/* This one has no getter for some reason, but guard agains that being fixed  */
+#ifndef PR_GET_PTRACER
+#define PR_GET_PTRACER NOT_SET
+/* Icky global variable to cache ptracer */
+static int __cached_ptracer = NOT_SET;
+#endif
+#endif
+
+/* {{{ prctl_prctl */
+static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 {
-        char *arg = NULL;
-        int arg_len, len;
+	long arg = 0;
+	char *argstr = NULL;
+	int argstr_len = 0;
+	char name[17] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+	int result;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &arg) == FAILURE) {
+		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &argstr, &argstr_len) == FAILURE) {
+			return;
+		}
+		if(option != PR_SET_NAME) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "a integer is required");
+			RETURN_FALSE;
+		}
+	} else {
+		if(option == PR_SET_NAME) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "a string is required");
+			RETURN_FALSE;
+		}
+	}
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
-                return;
-        }
+	switch (option) {
+		case (PR_CAPBSET_READ):
+		case (PR_CAPBSET_DROP):
+			if (!cap_valid(arg)) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown capability");
+				RETURN_FALSE;
+			}
+			break;
+		case (PR_SET_DUMPABLE):
+		case (PR_SET_KEEPCAPS):
+			arg = arg ? 1 : 0;
+			break;
+		case (PR_SET_ENDIAN):
+			if(arg != PR_ENDIAN_LITTLE && arg != PR_ENDIAN_BIG && arg != PR_ENDIAN_PPC_LITTLE) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown endianness");
+				RETURN_FALSE;
+			}
+			break;
+		case (PR_SET_FPEMU):
+			if(arg != PR_FPEMU_NOPRINT && arg != PR_FPEMU_SIGFPE) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown floating-point emulation setting");
+				RETURN_FALSE;
+			}
+		case (PR_SET_FPEXC):
+			if(arg & ~(PR_FP_EXC_SW_ENABLE | PR_FP_EXC_DIV | PR_FP_EXC_OVF | PR_FP_EXC_UND | PR_FP_EXC_RES |
+				   PR_FP_EXC_INV | PR_FP_EXC_DISABLED | PR_FP_EXC_NONRECOV | PR_FP_EXC_ASYNC | PR_FP_EXC_PRECISE)) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown floating-point exception mode");
+				RETURN_FALSE;
+			}
+#if PR_MCE_KILL
+		case (PR_SET_MCE_KILL):
+			if(arg != PR_MCE_KILL_DEFAULT && arg != PR_MCE_KILL_EARLY && arg != PR_MCE_KILL_LATE) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown memory corruption kill policy");
+				RETURN_FALSE;
+			}
+			break;
+#endif
+		case (PR_SET_NAME):
+			if(strlen(argstr) > 16) {
+				php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Name is truncated to 16 length");
+			}
+			strncpy(name, argstr, 16);
+			break;
+		case (PR_SET_PDEATHSIG):
+			if(arg < 0 || arg > SIGRTMAX) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown signal");
+				RETURN_FALSE;
+			}
+			break;
+		case (PR_SET_SECCOMP):
+			if(!arg) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Argument must be 1");
+				RETURN_FALSE;
+			}
+			arg = 1;
+			break;
+		case (PR_SET_SECUREBITS):
+			if(arg & ~ ((1 << SECURE_NOROOT) | (1 << SECURE_NOROOT_LOCKED) | (1 << SECURE_NO_SETUID_FIXUP) |
+			            (1 << SECURE_NO_SETUID_FIXUP_LOCKED) | (1 << SECURE_KEEP_CAPS) | (1 << SECURE_KEEP_CAPS_LOCKED))) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid securebits set");
+				RETURN_FALSE;
+			}
+			break;
+		case (PR_SET_TIMING):
+			if(arg != PR_TIMING_STATISTICAL && arg != PR_TIMING_TIMESTAMP) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid timing constant");
+				RETURN_FALSE;
+			}
+			break;
+		case (PR_SET_TSC):
+			if(arg != PR_TSC_ENABLE && arg != PR_TSC_SIGSEGV) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid TSC setting");
+				RETURN_FALSE;
+			}
+			break;
+		case (PR_SET_UNALIGN):
+			if(arg != PR_UNALIGN_NOPRINT && arg != PR_UNALIGN_SIGBUS) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid UNALIGN setting");
+				RETURN_FALSE;
+			}
+			break;
+	}
 
-        prctl(PR_SET_NAME, arg, 0, 0, 0);
+	/*
+	 * Calling prctl 
+	 * There are 3 basic call modes:
+	 * - Setters and getters for which the return value is the result
+	 * - Getters for which the result is placed in arg2
+	 * - Getters and setters that deal with strings.
+	 *
+	 * This function takes care of all that and always returns Py_None for
+	 * settings or the result of a getter call as a PyInt or PyString.
+	 */
+	switch(option) {
+		case(PR_CAPBSET_READ):
+		case(PR_CAPBSET_DROP):
+		case(PR_SET_DUMPABLE):
+		case(PR_GET_DUMPABLE):
+		case(PR_SET_ENDIAN):
+		case(PR_SET_FPEMU):
+		case(PR_SET_FPEXC):
+		case(PR_SET_KEEPCAPS):
+		case(PR_GET_KEEPCAPS):
+#ifdef PR_MCE_KILL
+		case(PR_GET_MCE_KILL):
+#endif
+		case(PR_SET_PDEATHSIG):
+#if defined(PR_GET_PTRACER) && (PR_GET_PTRACER != NOT_SET)
+		case(PR_GET_PTRACER):
+#endif
+#ifdef PR_SET_PTRACER
+		case(PR_SET_PTRACER):
+#endif
+		case(PR_SET_SECCOMP):
+		case(PR_GET_SECCOMP):
+		case(PR_SET_SECUREBITS):
+		case(PR_GET_SECUREBITS):
+#ifdef PR_GET_TIMERSLACK
+		case(PR_GET_TIMERSLACK):
+		case(PR_SET_TIMERSLACK):
+#endif
+		case(PR_SET_TIMING):
+		case(PR_GET_TIMING):
+		case(PR_SET_TSC):
+		case(PR_SET_UNALIGN):
+			result = prctl(option, arg, 0, 0, 0);
+			if(result < 0) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", strerror(errno));
+				RETURN_FALSE;
+			}
+			switch(option) {
+				case(PR_CAPBSET_READ):
+				case(PR_GET_DUMPABLE):
+				case(PR_GET_KEEPCAPS):
+				case(PR_GET_SECCOMP):
+				case(PR_GET_TIMING):
+					RETURN_LONG(result);
+#ifdef PR_MCE_KILL
+				case(PR_GET_MCE_KILL):
+#endif
+#if defined(PR_GET_PTRACER) && (PR_GET_PTRACER != NOT_SET)
+				case(PR_GET_PTRACER):
+#endif
+				case(PR_GET_SECUREBITS):
+#ifdef PR_GET_TIMERSLACK
+				case(PR_GET_TIMERSLACK):
+#endif
+					RETURN_LONG(result);
+#if defined(PR_GET_PTRACER) && (PR_GET_PTRACER == NOT_SET)
+				case(PR_SET_PTRACER):
+					__cached_ptracer = arg;
+					break;
+#endif
+			}
+			break;
+		case(PR_GET_ENDIAN):
+		case(PR_GET_FPEMU):
+		case(PR_GET_FPEXC):
+		case(PR_GET_PDEATHSIG):
+		case(PR_GET_TSC):
+		case(PR_GET_UNALIGN):
+			result = prctl(option, &arg, 0, 0, 0);
+			if(result < 0) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", strerror(errno));
+				RETURN_FALSE;
+			}
+			RETURN_LONG(arg);
+		case(PR_SET_NAME):
+		case(PR_GET_NAME):
+			result = prctl(option, name, 0, 0, 0);
+			if(result < 0) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", strerror(errno));
+				RETURN_FALSE;
+			}
+			if(option == PR_GET_NAME) {
+				RETURN_STRING(name, 1);
+			}
+			break;
+#if defined(PR_GET_PTRACER) && (PR_GET_PTRACER == NOT_SET)
+		case(PR_GET_PTRACER):
+			if(__cached_ptracer == NOT_SET)
+				RETURN_LONG(getppid());
+			RETURN_LONG(__cached_ptracer);
+#endif
+#ifdef PR_MCE_KILL
+		case(PR_SET_MCE_KILL):
+			result = prctl(option, PR_MCE_KILL_SET, arg, 0, 0);
+			if(result < 0) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", strerror(errno));
+				RETURN_FALSE;
+			}
+			break;
+#endif
+		default:
+			php_error_docref(NULL TSRMLS_CC, E_WARNING,"Unkown prctl option");
+			RETURN_FALSE;
+	}
 
-        RETURN_LONG(0);
+	/* None is returned by default */
+	RETURN_TRUE;
+}
+/* }}} */
+
+/* {{{ prctl_functions */
+#define PRCTL_FUNCTION(x,y) PHP_FUNCTION(x) \
+{ \
+	prctl_prctl(INTERNAL_FUNCTION_PARAM_PASSTHRU, y); \
 }
 
-PHP_FUNCTION(prctl_get_name)
-{
-        char p_name[17] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
-
-        if (zend_parse_parameters_none() == FAILURE) {
-                return;
-        }
-
-        prctl(PR_GET_NAME, p_name, 0, 0, 0);
-
-        RETVAL_STRING(p_name, 1);
-}
-
-PHP_FUNCTION(prctl_set_pdeathsig)
-{
-        long arg;
-
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &arg) == FAILURE) {
-                return;
-        }
-
-        if (arg < 0 || arg > SIGRTMAX) {
-                php_error_docref(NULL TSRMLS_CC, E_WARNING, "Signal has to be between 0 and %d", SIGRTMAX);
-                RETURN_FALSE;
-        }
-
-        if (!prctl(PR_SET_PDEATHSIG, arg, 0, 0, 0)) {
-                RETURN_TRUE;
-        } else {
-                RETURN_FALSE;
-        }
-}
-
-PHP_FUNCTION(prctl_get_pdeathsig)
-{
-        long arg;
-
-        if (zend_parse_parameters_none() == FAILURE) {
-                return;
-        }
-
-        if (!prctl(PR_GET_PDEATHSIG, &arg, 0, 0, 0)) {
-                RETURN_LONG(arg);
-        } else {
-                RETURN_FALSE;
-        }
-}
-
+PRCTL_FUNCTION(prctl_capbset_read, PR_CAPBSET_READ);
+PRCTL_FUNCTION(prctl_capbset_drop, PR_CAPBSET_DROP);
+PRCTL_FUNCTION(prctl_set_dumpable, PR_SET_DUMPABLE);
+PRCTL_FUNCTION(prctl_get_dumpable, PR_GET_DUMPABLE);
+PRCTL_FUNCTION(prctl_set_endian, PR_SET_ENDIAN);
+PRCTL_FUNCTION(prctl_get_endian, PR_GET_ENDIAN);
+PRCTL_FUNCTION(prctl_set_fpemu, PR_SET_FPEMU);
+PRCTL_FUNCTION(prctl_get_fpemu, PR_GET_FPEMU);
+PRCTL_FUNCTION(prctl_set_fpexc, PR_SET_FPEXC);
+PRCTL_FUNCTION(prctl_get_fpexc, PR_GET_FPEXC);
+PRCTL_FUNCTION(prctl_set_keepcaps, PR_SET_KEEPCAPS);
+PRCTL_FUNCTION(prctl_get_keepcaps, PR_GET_KEEPCAPS);
+PRCTL_FUNCTION(prctl_set_name, PR_SET_NAME);
+PRCTL_FUNCTION(prctl_get_name, PR_GET_NAME);
+PRCTL_FUNCTION(prctl_set_pdeathsig, PR_SET_PDEATHSIG);
+PRCTL_FUNCTION(prctl_get_pdeathsig, PR_GET_PDEATHSIG);
+PRCTL_FUNCTION(prctl_set_seccomp, PR_SET_SECCOMP);
+PRCTL_FUNCTION(prctl_get_seccomp, PR_GET_SECCOMP);
+PRCTL_FUNCTION(prctl_set_securebits, PR_SET_SECUREBITS);
+PRCTL_FUNCTION(prctl_get_securebits, PR_GET_SECUREBITS);
+PRCTL_FUNCTION(prctl_set_tsc, PR_SET_TSC);
+PRCTL_FUNCTION(prctl_get_tsc, PR_GET_TSC);
+PRCTL_FUNCTION(prctl_set_unalign, PR_SET_UNALIGN);
+PRCTL_FUNCTION(prctl_get_unalign, PR_GET_UNALIGN);
+#ifdef PR_MCE_KILL
+PRCTL_FUNCTION(prctl_set_mce_kill, PR_SET_MCE_KILL);
+PRCTL_FUNCTION(prctl_get_mce_kill, PR_GET_MCE_KILL);
+#endif
 
 /* }}} */
 /* The previous line is meant for vim and emacs, so it can correctly fold and 

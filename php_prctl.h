@@ -45,10 +45,30 @@ PHP_RSHUTDOWN_FUNCTION(prctl);
 PHP_MINFO_FUNCTION(prctl);
 
 PHP_FUNCTION(confirm_prctl_compiled);	/* For testing, remove later. */
+PHP_FUNCTION(prctl_capbset_read);
+PHP_FUNCTION(prctl_capbset_drop);
+PHP_FUNCTION(prctl_set_dumpable);
+PHP_FUNCTION(prctl_get_dumpable);
+PHP_FUNCTION(prctl_set_endian);
+PHP_FUNCTION(prctl_get_endian);
+PHP_FUNCTION(prctl_set_fpemu);
+PHP_FUNCTION(prctl_get_fpemu);
+PHP_FUNCTION(prctl_set_fpexc);
+PHP_FUNCTION(prctl_get_fpexc);
+PHP_FUNCTION(prctl_set_keepcaps);
+PHP_FUNCTION(prctl_get_keepcaps);
 PHP_FUNCTION(prctl_set_name);
 PHP_FUNCTION(prctl_get_name);
 PHP_FUNCTION(prctl_set_pdeathsig);
 PHP_FUNCTION(prctl_get_pdeathsig);
+PHP_FUNCTION(prctl_set_seccomp);
+PHP_FUNCTION(prctl_get_seccomp);
+PHP_FUNCTION(prctl_set_securebits);
+PHP_FUNCTION(prctl_get_securebits);
+PHP_FUNCTION(prctl_set_tsc);
+PHP_FUNCTION(prctl_get_tsc);
+PHP_FUNCTION(prctl_set_unalign);
+PHP_FUNCTION(prctl_get_unalign);
 
 /* 
   	Declare any global variables you may need between the BEGIN
