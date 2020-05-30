@@ -1,3 +1,10 @@
+php-prctl (0.1-3) bionic; urgency=low
+
+  * Add new prctl params
+  * New buildsystem
+
+ -- Andras Elso <elso.andras@gmail.com>  Sat, 30 May 2020 00:49:54 +0000
+
 php-prctl (0.1-2) unstable; urgency=low
 
   [ Andras Elso ]
