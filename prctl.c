@@ -70,6 +70,40 @@ const zend_function_entry prctl_functions[] = {
 	PHP_FE(prctl_get_tsc,	NULL)
 	PHP_FE(prctl_set_unalign,	NULL)
 	PHP_FE(prctl_get_unalign,	NULL)
+#ifdef PR_MCE_KILL
+	PHP_FE(prctl_set_mce_kill,	NULL)
+	PHP_FE(prctl_set_mce_clear,	NULL)
+	PHP_FE(prctl_get_mce_kill,	NULL)
+#endif
+#ifdef PR_SET_TIMERSLACK
+	PHP_FE(prctl_set_timerslack,	NULL)
+	PHP_FE(prctl_get_timerslack,	NULL)
+#endif
+#ifdef PR_TASK_PERF_EVENTS_DISABLE
+	PHP_FE(prctl_task_perf_events_disable,	NULL)
+	PHP_FE(prctl_task_perf_events_enable,	NULL)
+#endif
+#ifdef PR_SET_PTRACER
+	PHP_FE(prctl_set_ptracer,	NULL)
+#endif
+#ifdef PR_SET_CHILD_SUBREAPER
+	PHP_FE(prctl_set_child_subreaper,	NULL)
+	PHP_FE(prctl_get_child_subreaper,	NULL)
+#endif
+#ifdef PR_SET_NO_NEW_PRIVS
+	PHP_FE(prctl_set_no_new_privs,	NULL)
+	PHP_FE(prctl_get_no_new_privs,	NULL)
+	PHP_FE(prctl_get_tid_address,	NULL)
+#endif
+#ifdef PR_SET_THP_DISABLE
+	PHP_FE(prctl_set_thp_disable,	NULL)
+	PHP_FE(prctl_get_thp_disable,	NULL)
+#endif
+#ifdef PR_SET_FP_MODE
+	PHP_FE(prctl_set_fp_mode,	NULL)
+	PHP_FE(prctl_get_fp_mode,	NULL)
+#endif
+
 	{NULL, NULL, NULL}	/* Must be the last line in prctl_functions[] */
 };
 /* }}} */
@@ -156,6 +190,15 @@ PHP_MINIT_FUNCTION(prctl)
 	PRCTL_CONST(MCE_KILL_DEFAULT);
 	PRCTL_CONST(MCE_KILL_EARLY);
 	PRCTL_CONST(MCE_KILL_LATE);
+
+#ifdef PR_SET_PTRACER
+	PRCTL_CONST(SET_PTRACER_ANY);
+#endif
+
+#ifdef PR_SET_FP_MODE
+	PRCTL_CONST(FP_MODE_FR);
+	PRCTL_CONST(FP_MODE_FRE);
+#endif
 
 	return SUCCESS;
 }
@@ -325,6 +368,13 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 			}
 			break;
 		case (PR_SET_SECCOMP):
+#ifdef PR_TASK_PERF_EVENTS_DISABLE
+		case (PR_TASK_PERF_EVENTS_DISABLE):
+		case (PR_TASK_PERF_EVENTS_ENABLE):
+#endif
+#ifdef PR_SET_NO_NEW_PRIVS
+		case(PR_SET_NO_NEW_PRIVS):
+#endif
 			if(!arg) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Argument must be 1");
 				RETURN_FALSE;
@@ -356,6 +406,14 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 				RETURN_FALSE;
 			}
 			break;
+#ifdef PR_SET_FP_MODE
+		case (PR_SET_FP_MODE):
+			if(arg != PR_FP_MODE_FR && arg != PR_FP_MODE_FRE) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid FP_MODE setting");
+				RETURN_FALSE;
+			}
+			break;
+#endif
 	}
 
 	/*
@@ -371,6 +429,9 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 	switch(option) {
 		case(PR_CAPBSET_READ):
 		case(PR_CAPBSET_DROP):
+#ifdef PR_SET_CHILD_SUBREAPER
+		case(PR_SET_CHILD_SUBREAPER):
+#endif
 		case(PR_SET_DUMPABLE):
 		case(PR_GET_DUMPABLE):
 		case(PR_SET_ENDIAN):
@@ -380,6 +441,14 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 		case(PR_GET_KEEPCAPS):
 #ifdef PR_MCE_KILL
 		case(PR_GET_MCE_KILL):
+#endif
+#ifdef PR_GET_NO_NEW_PRIVS
+		case(PR_GET_NO_NEW_PRIVS):
+		case(PR_SET_NO_NEW_PRIVS):
+#endif
+#ifdef PR_TASK_PERF_EVENTS_DISABLE
+		case(PR_TASK_PERF_EVENTS_DISABLE):
+		case(PR_TASK_PERF_EVENTS_ENABLE):
 #endif
 		case(PR_SET_PDEATHSIG):
 #if defined(PR_GET_PTRACER) && (PR_GET_PTRACER != NOT_SET)
@@ -400,6 +469,13 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 		case(PR_GET_TIMING):
 		case(PR_SET_TSC):
 		case(PR_SET_UNALIGN):
+#ifdef PR_SET_THP_DISABLE
+		case(PR_SET_THP_DISABLE):
+		case(PR_GET_THP_DISABLE):
+#endif
+#ifdef PR_SET_FP_MODE
+		case(PR_SET_FP_MODE):
+#endif
 			result = prctl(option, arg, 0, 0, 0);
 			if(result < 0) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", strerror(errno));
@@ -415,12 +491,18 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 #ifdef PR_MCE_KILL
 				case(PR_GET_MCE_KILL):
 #endif
+#ifdef PR_GET_NO_NEW_PRIVS
+				case(PR_GET_NO_NEW_PRIVS):
+#endif
 #if defined(PR_GET_PTRACER) && (PR_GET_PTRACER != NOT_SET)
 				case(PR_GET_PTRACER):
 #endif
 				case(PR_GET_SECUREBITS):
 #ifdef PR_GET_TIMERSLACK
 				case(PR_GET_TIMERSLACK):
+#endif
+#ifdef PR_SET_THP_DISABLE
+				case(PR_GET_THP_DISABLE):
 #endif
 					RETURN_LONG(result);
 #if defined(PR_GET_PTRACER) && (PR_GET_PTRACER == NOT_SET)
@@ -430,12 +512,18 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 #endif
 			}
 			break;
+#ifdef PR_GET_CHILD_SUBREAPER
+		case(PR_GET_CHILD_SUBREAPER):
+#endif
 		case(PR_GET_ENDIAN):
 		case(PR_GET_FPEMU):
 		case(PR_GET_FPEXC):
 		case(PR_GET_PDEATHSIG):
 		case(PR_GET_TSC):
 		case(PR_GET_UNALIGN):
+#ifdef PR_GET_TID_ADDRESS
+		case(PR_GET_TID_ADDRESS):
+#endif
 			result = prctl(option, &arg, 0, 0, 0);
 			if(result < 0) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", strerror(errno));
@@ -460,6 +548,13 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 			RETURN_LONG(__cached_ptracer);
 #endif
 #ifdef PR_MCE_KILL
+		case(PR_MCE_KILL_CLEAR):
+			result = prctl(option, PR_MCE_KILL_CLEAR, 0, 0, 0);
+			if(result < 0) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", strerror(errno));
+				RETURN_FALSE;
+			}
+			break;
 		case(PR_SET_MCE_KILL):
 			result = prctl(option, PR_MCE_KILL_SET, arg, 0, 0);
 			if(result < 0) {
@@ -510,7 +605,36 @@ PRCTL_FUNCTION(prctl_set_unalign, PR_SET_UNALIGN);
 PRCTL_FUNCTION(prctl_get_unalign, PR_GET_UNALIGN);
 #ifdef PR_MCE_KILL
 PRCTL_FUNCTION(prctl_set_mce_kill, PR_SET_MCE_KILL);
+PRCTL_FUNCTION(prctl_set_mce_clear, PR_SET_MCE_CLEAR);
 PRCTL_FUNCTION(prctl_get_mce_kill, PR_GET_MCE_KILL);
+#endif
+#ifdef PR_SET_TIMERSLACK
+PRCTL_FUNCTION(prctl_set_timerslack, PR_SET_TIMERSLACK);
+PRCTL_FUNCTION(prctl_get_timerslack, PR_GET_TIMERSLACK);
+#endif
+#ifdef PR_TASK_PERF_EVENTS_DISABLE
+PRCTL_FUNCTION(prctl_task_perf_events_disable, PR_TASK_PERF_EVENTS_DISABLE);
+PRCTL_FUNCTION(prctl_task_perf_events_enable, PR_TASK_PERF_EVENTS_ENABLE);
+#endif
+#ifdef PR_SET_PTRACER
+PRCTL_FUNCTION(prctl_set_ptracer, PR_SET_PTRACER);
+#endif
+#ifdef PR_SET_CHILD_SUBREAPER
+PRCTL_FUNCTION(prctl_set_child_subreaper, PR_SET_CHILD_SUBREAPER);
+PRCTL_FUNCTION(prctl_get_child_subreaper, PR_GET_CHILD_SUBREAPER);
+#endif
+#ifdef PR_SET_NO_NEW_PRIVS
+PRCTL_FUNCTION(prctl_set_no_new_privs, PR_SET_NO_NEW_PRIVS);
+PRCTL_FUNCTION(prctl_get_no_new_privs, PR_GET_NO_NEW_PRIVS);
+PRCTL_FUNCTION(prctl_get_tid_address, PR_GET_TID_ADDRESS);
+#endif
+#ifdef PR_SET_THP_DISABLE
+PRCTL_FUNCTION(prctl_set_thp_disable, PR_SET_THP_DISABLE);
+PRCTL_FUNCTION(prctl_get_thp_disable, PR_GET_THP_DISABLE);
+#endif
+#ifdef PR_SET_FP_MODE
+PRCTL_FUNCTION(prctl_set_fp_mode, PR_SET_FP_MODE);
+PRCTL_FUNCTION(prctl_get_fp_mode, PR_GET_FP_MODE);
 #endif
 
 /* }}} */

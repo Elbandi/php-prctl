@@ -69,6 +69,39 @@ PHP_FUNCTION(prctl_set_tsc);
 PHP_FUNCTION(prctl_get_tsc);
 PHP_FUNCTION(prctl_set_unalign);
 PHP_FUNCTION(prctl_get_unalign);
+#ifdef PR_MCE_KILL
+PHP_FUNCTION(prctl_set_mce_kill);
+PHP_FUNCTION(prctl_set_mce_clear);
+PHP_FUNCTION(prctl_get_mce_kill);
+#endif
+#ifdef PR_SET_TIMERSLACK
+PHP_FUNCTION(prctl_set_timerslack);
+PHP_FUNCTION(prctl_get_timerslack);
+#endif
+#ifdef PR_TASK_PERF_EVENTS_DISABLE
+PHP_FUNCTION(prctl_task_perf_events_disable);
+PHP_FUNCTION(prctl_task_perf_events_enable);
+#endif
+#ifdef PR_SET_PTRACER
+PHP_FUNCTION(prctl_set_ptracer);
+#endif
+#ifdef PR_SET_CHILD_SUBREAPER
+PHP_FUNCTION(prctl_set_child_subreaper);
+PHP_FUNCTION(prctl_get_child_subreaper);
+#endif
+#ifdef PR_SET_NO_NEW_PRIVS
+PHP_FUNCTION(prctl_set_no_new_privs);
+PHP_FUNCTION(prctl_get_no_new_privs);
+PHP_FUNCTION(prctl_get_tid_address);
+#endif
+#ifdef PR_SET_THP_DISABLE
+PHP_FUNCTION(prctl_set_thp_disable);
+PHP_FUNCTION(prctl_get_thp_disable);
+#endif
+#ifdef PR_SET_FP_MODE
+PHP_FUNCTION(prctl_set_fp_mode);
+PHP_FUNCTION(prctl_get_fp_mode);
+#endif
 
 /* 
   	Declare any global variables you may need between the BEGIN
