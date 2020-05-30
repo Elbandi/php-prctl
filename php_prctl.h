@@ -82,6 +82,9 @@ PHP_FUNCTION(prctl_get_timerslack);
 PHP_FUNCTION(prctl_task_perf_events_disable);
 PHP_FUNCTION(prctl_task_perf_events_enable);
 #endif
+#ifdef PR_SET_MM
+PHP_FUNCTION(prctl_set_mm);
+#endif
 #ifdef PR_SET_PTRACER
 PHP_FUNCTION(prctl_set_ptracer);
 #endif

@@ -83,6 +83,9 @@ const zend_function_entry prctl_functions[] = {
 	PHP_FE(prctl_task_perf_events_disable,	NULL)
 	PHP_FE(prctl_task_perf_events_enable,	NULL)
 #endif
+#ifdef PR_SET_MM
+	PHP_FE(prctl_set_mm,	NULL)
+#endif
 #ifdef PR_SET_PTRACER
 	PHP_FE(prctl_set_ptracer,	NULL)
 #endif
@@ -190,6 +193,24 @@ PHP_MINIT_FUNCTION(prctl)
 	PRCTL_CONST(MCE_KILL_DEFAULT);
 	PRCTL_CONST(MCE_KILL_EARLY);
 	PRCTL_CONST(MCE_KILL_LATE);
+
+#ifdef PR_SET_MM
+	PRCTL_CONST(SET_MM_START_CODE);
+	PRCTL_CONST(SET_MM_END_CODE);
+	PRCTL_CONST(SET_MM_START_DATA);
+	PRCTL_CONST(SET_MM_END_DATA);
+	PRCTL_CONST(SET_MM_START_STACK);
+	PRCTL_CONST(SET_MM_START_BRK);
+	PRCTL_CONST(SET_MM_BRK);
+	PRCTL_CONST(SET_MM_ARG_START);
+	PRCTL_CONST(SET_MM_ARG_END);
+	PRCTL_CONST(SET_MM_ENV_START);
+	PRCTL_CONST(SET_MM_ENV_END);
+	PRCTL_CONST(SET_MM_AUXV);
+	PRCTL_CONST(SET_MM_EXE_FILE);
+	PRCTL_CONST(SET_MM_MAP);
+	PRCTL_CONST(SET_MM_MAP_SIZE);
+#endif
 
 #ifdef PR_SET_PTRACER
 	PRCTL_CONST(SET_PTRACER_ANY);
@@ -406,6 +427,14 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 				RETURN_FALSE;
 			}
 			break;
+#ifdef PR_SET_MM
+		case (PR_SET_MM):
+			if(arg < PR_SET_MM_START_CODE || arg > PR_SET_MM_MAP_SIZE) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid MM setting");
+				RETURN_FALSE;
+			}
+			break;
+#endif
 #ifdef PR_SET_FP_MODE
 		case (PR_SET_FP_MODE):
 			if(arg != PR_FP_MODE_FR && arg != PR_FP_MODE_FRE) {
@@ -469,6 +498,9 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 		case(PR_GET_TIMING):
 		case(PR_SET_TSC):
 		case(PR_SET_UNALIGN):
+#ifdef PR_SET_MM
+		case(PR_SET_MM):
+#endif
 #ifdef PR_SET_THP_DISABLE
 		case(PR_SET_THP_DISABLE):
 		case(PR_GET_THP_DISABLE):
@@ -615,6 +647,9 @@ PRCTL_FUNCTION(prctl_get_timerslack, PR_GET_TIMERSLACK);
 #ifdef PR_TASK_PERF_EVENTS_DISABLE
 PRCTL_FUNCTION(prctl_task_perf_events_disable, PR_TASK_PERF_EVENTS_DISABLE);
 PRCTL_FUNCTION(prctl_task_perf_events_enable, PR_TASK_PERF_EVENTS_ENABLE);
+#endif
+#ifdef PR_SET_MM
+PRCTL_FUNCTION(prctl_set_mm, PR_SET_MM);
 #endif
 #ifdef PR_SET_PTRACER
 PRCTL_FUNCTION(prctl_set_ptracer, PR_SET_PTRACER);
