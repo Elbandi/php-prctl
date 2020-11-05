@@ -25,11 +25,11 @@
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
-#include "php_prctl.h"
 #include "securebits.h"
 #include <sys/capability.h>
 #include <sys/prctl.h>
 #include <sys/signal.h>
+#include "php_prctl.h"
 
 #define PRCTL_CONST(tag) REGISTER_LONG_CONSTANT("PRCTL_" #tag, PR_##tag, CONST_CS | CONST_PERSISTENT)
 
@@ -282,6 +282,7 @@ PHP_FUNCTION(confirm_prctl_compiled)
 #ifdef PR_MCE_KILL
 #define PR_GET_MCE_KILL PR_MCE_KILL_GET
 #define PR_SET_MCE_KILL PR_MCE_KILL
+#define PR_SET_MCE_CLEAR PR_MCE_KILL_CLEAR
 #endif
 
 /* New in 2.6.XX (Ubuntu 10.10) */
