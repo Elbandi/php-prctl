@@ -580,62 +580,62 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 	prctl_prctl(INTERNAL_FUNCTION_PARAM_PASSTHRU, y); \
 }
 
-PRCTL_FUNCTION(prctl_capbset_read, PR_CAPBSET_READ);
-PRCTL_FUNCTION(prctl_capbset_drop, PR_CAPBSET_DROP);
-PRCTL_FUNCTION(prctl_set_dumpable, PR_SET_DUMPABLE);
-PRCTL_FUNCTION(prctl_get_dumpable, PR_GET_DUMPABLE);
-PRCTL_FUNCTION(prctl_set_endian, PR_SET_ENDIAN);
-PRCTL_FUNCTION(prctl_get_endian, PR_GET_ENDIAN);
-PRCTL_FUNCTION(prctl_set_fpemu, PR_SET_FPEMU);
-PRCTL_FUNCTION(prctl_get_fpemu, PR_GET_FPEMU);
-PRCTL_FUNCTION(prctl_set_fpexc, PR_SET_FPEXC);
-PRCTL_FUNCTION(prctl_get_fpexc, PR_GET_FPEXC);
-PRCTL_FUNCTION(prctl_set_keepcaps, PR_SET_KEEPCAPS);
-PRCTL_FUNCTION(prctl_get_keepcaps, PR_GET_KEEPCAPS);
-PRCTL_FUNCTION(prctl_set_name, PR_SET_NAME);
-PRCTL_FUNCTION(prctl_get_name, PR_GET_NAME);
-PRCTL_FUNCTION(prctl_set_pdeathsig, PR_SET_PDEATHSIG);
-PRCTL_FUNCTION(prctl_get_pdeathsig, PR_GET_PDEATHSIG);
-PRCTL_FUNCTION(prctl_set_seccomp, PR_SET_SECCOMP);
-PRCTL_FUNCTION(prctl_get_seccomp, PR_GET_SECCOMP);
-PRCTL_FUNCTION(prctl_set_securebits, PR_SET_SECUREBITS);
-PRCTL_FUNCTION(prctl_get_securebits, PR_GET_SECUREBITS);
-PRCTL_FUNCTION(prctl_set_tsc, PR_SET_TSC);
-PRCTL_FUNCTION(prctl_get_tsc, PR_GET_TSC);
-PRCTL_FUNCTION(prctl_set_unalign, PR_SET_UNALIGN);
-PRCTL_FUNCTION(prctl_get_unalign, PR_GET_UNALIGN);
+PRCTL_FUNCTION(prctl_capbset_read, PR_CAPBSET_READ)
+PRCTL_FUNCTION(prctl_capbset_drop, PR_CAPBSET_DROP)
+PRCTL_FUNCTION(prctl_set_dumpable, PR_SET_DUMPABLE)
+PRCTL_FUNCTION(prctl_get_dumpable, PR_GET_DUMPABLE)
+PRCTL_FUNCTION(prctl_set_endian, PR_SET_ENDIAN)
+PRCTL_FUNCTION(prctl_get_endian, PR_GET_ENDIAN)
+PRCTL_FUNCTION(prctl_set_fpemu, PR_SET_FPEMU)
+PRCTL_FUNCTION(prctl_get_fpemu, PR_GET_FPEMU)
+PRCTL_FUNCTION(prctl_set_fpexc, PR_SET_FPEXC)
+PRCTL_FUNCTION(prctl_get_fpexc, PR_GET_FPEXC)
+PRCTL_FUNCTION(prctl_set_keepcaps, PR_SET_KEEPCAPS)
+PRCTL_FUNCTION(prctl_get_keepcaps, PR_GET_KEEPCAPS)
+PRCTL_FUNCTION(prctl_set_name, PR_SET_NAME)
+PRCTL_FUNCTION(prctl_get_name, PR_GET_NAME)
+PRCTL_FUNCTION(prctl_set_pdeathsig, PR_SET_PDEATHSIG)
+PRCTL_FUNCTION(prctl_get_pdeathsig, PR_GET_PDEATHSIG)
+PRCTL_FUNCTION(prctl_set_seccomp, PR_SET_SECCOMP)
+PRCTL_FUNCTION(prctl_get_seccomp, PR_GET_SECCOMP)
+PRCTL_FUNCTION(prctl_set_securebits, PR_SET_SECUREBITS)
+PRCTL_FUNCTION(prctl_get_securebits, PR_GET_SECUREBITS)
+PRCTL_FUNCTION(prctl_set_tsc, PR_SET_TSC)
+PRCTL_FUNCTION(prctl_get_tsc, PR_GET_TSC)
+PRCTL_FUNCTION(prctl_set_unalign, PR_SET_UNALIGN)
+PRCTL_FUNCTION(prctl_get_unalign, PR_GET_UNALIGN)
 #ifdef PR_MCE_KILL
-PRCTL_FUNCTION(prctl_set_mce_kill, PR_SET_MCE_KILL);
-PRCTL_FUNCTION(prctl_set_mce_clear, PR_SET_MCE_CLEAR);
-PRCTL_FUNCTION(prctl_get_mce_kill, PR_GET_MCE_KILL);
+PRCTL_FUNCTION(prctl_set_mce_kill, PR_SET_MCE_KILL)
+PRCTL_FUNCTION(prctl_set_mce_clear, PR_SET_MCE_CLEAR)
+PRCTL_FUNCTION(prctl_get_mce_kill, PR_GET_MCE_KILL)
 #endif
 #ifdef PR_SET_TIMERSLACK
-PRCTL_FUNCTION(prctl_set_timerslack, PR_SET_TIMERSLACK);
-PRCTL_FUNCTION(prctl_get_timerslack, PR_GET_TIMERSLACK);
+PRCTL_FUNCTION(prctl_set_timerslack, PR_SET_TIMERSLACK)
+PRCTL_FUNCTION(prctl_get_timerslack, PR_GET_TIMERSLACK)
 #endif
 #ifdef PR_TASK_PERF_EVENTS_DISABLE
-PRCTL_FUNCTION(prctl_task_perf_events_disable, PR_TASK_PERF_EVENTS_DISABLE);
-PRCTL_FUNCTION(prctl_task_perf_events_enable, PR_TASK_PERF_EVENTS_ENABLE);
+PRCTL_FUNCTION(prctl_task_perf_events_disable, PR_TASK_PERF_EVENTS_DISABLE)
+PRCTL_FUNCTION(prctl_task_perf_events_enable, PR_TASK_PERF_EVENTS_ENABLE)
 #endif
 #ifdef PR_SET_PTRACER
-PRCTL_FUNCTION(prctl_set_ptracer, PR_SET_PTRACER);
+PRCTL_FUNCTION(prctl_set_ptracer, PR_SET_PTRACER)
 #endif
 #ifdef PR_SET_CHILD_SUBREAPER
-PRCTL_FUNCTION(prctl_set_child_subreaper, PR_SET_CHILD_SUBREAPER);
-PRCTL_FUNCTION(prctl_get_child_subreaper, PR_GET_CHILD_SUBREAPER);
+PRCTL_FUNCTION(prctl_set_child_subreaper, PR_SET_CHILD_SUBREAPER)
+PRCTL_FUNCTION(prctl_get_child_subreaper, PR_GET_CHILD_SUBREAPER)
 #endif
 #ifdef PR_SET_NO_NEW_PRIVS
-PRCTL_FUNCTION(prctl_set_no_new_privs, PR_SET_NO_NEW_PRIVS);
-PRCTL_FUNCTION(prctl_get_no_new_privs, PR_GET_NO_NEW_PRIVS);
-PRCTL_FUNCTION(prctl_get_tid_address, PR_GET_TID_ADDRESS);
+PRCTL_FUNCTION(prctl_set_no_new_privs, PR_SET_NO_NEW_PRIVS)
+PRCTL_FUNCTION(prctl_get_no_new_privs, PR_GET_NO_NEW_PRIVS)
+PRCTL_FUNCTION(prctl_get_tid_address, PR_GET_TID_ADDRESS)
 #endif
 #ifdef PR_SET_THP_DISABLE
-PRCTL_FUNCTION(prctl_set_thp_disable, PR_SET_THP_DISABLE);
-PRCTL_FUNCTION(prctl_get_thp_disable, PR_GET_THP_DISABLE);
+PRCTL_FUNCTION(prctl_set_thp_disable, PR_SET_THP_DISABLE)
+PRCTL_FUNCTION(prctl_get_thp_disable, PR_GET_THP_DISABLE)
 #endif
 #ifdef PR_SET_FP_MODE
-PRCTL_FUNCTION(prctl_set_fp_mode, PR_SET_FP_MODE);
-PRCTL_FUNCTION(prctl_get_fp_mode, PR_GET_FP_MODE);
+PRCTL_FUNCTION(prctl_set_fp_mode, PR_SET_FP_MODE)
+PRCTL_FUNCTION(prctl_get_fp_mode, PR_GET_FP_MODE)
 #endif
 
 /* }}} */
