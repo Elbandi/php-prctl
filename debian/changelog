@@ -1,3 +1,10 @@
+php-prctl (0.1-4) bionic; urgency=low
+
+  * Add PR_SET_MCE_CLEAR macro
+  * Remove extra ';' outside of a function
+
+ -- Andras Elso <elso.andras@gmail.com>  Thu, 05 Nov 2020 17:04:13 +0100
+
 php-prctl (0.1-3) bionic; urgency=low
 
   * Add new prctl params
