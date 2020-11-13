@@ -2,13 +2,26 @@ Source: php-prctl
 Section: web
 Priority: optional
 Maintainer: Andras Elso <elso.andras@gmail.com>
-Build-Depends: debhelper (>= 9), dh-php5, xsltproc, libcap-dev, php5-dev, php5-cli
-Standards-Version: 3.8.1
+Build-Depends: debhelper (>= 9),
+               dh-php (>= 2.0~),
+               libcap-dev,
+               php-all-dev (>= 28~)
+Standards-Version: 3.9.8
 
-Package: php5-prctl
+Package: php-prctl
 Architecture: any
-Depends: ${shlibs:Depends}, ${php:Depends}, ${misc:Depends}
-Description: prctl module for PHP 5
+Pre-Depends: php-common (>= 2:69~)
+Depends: ${misc:Depends},
+         ${php:Depends},
+         ${shlibs:Depends}
+Recommends: ghostscript,
+            ttf-dejavu-core
+Breaks: ${pecl:Breaks}
+Replaces: ${pecl:Replaces}
+Suggests: ${pecl:Suggests}
+Provides: ${pecl:Provides},
+          ${php:Provides}
+Description: prctl module for PHP
  Extended prctl Support
  .
  operations on a process

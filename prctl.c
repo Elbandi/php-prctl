@@ -267,7 +267,11 @@ PHP_FUNCTION(confirm_prctl_compiled)
 	}
 
 	len = spprintf(&strg, 0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "prctl", arg);
+#ifdef ZEND_ENGINE_3
+	RETURN_STRINGL(strg, len);
+#else
 	RETURN_STRINGL(strg, len, 0);
+#endif
 }
 /* }}} */
 
@@ -539,7 +543,11 @@ static void prctl_prctl(INTERNAL_FUNCTION_PARAMETERS, int option) /* {{{ */
 				RETURN_FALSE;
 			}
 			if(option == PR_GET_NAME) {
+#ifdef ZEND_ENGINE_3
+				RETURN_STRING(name);
+#else
 				RETURN_STRING(name, 1);
+#endif
 			}
 			break;
 #if defined(PR_GET_PTRACER) && (PR_GET_PTRACER == NOT_SET)
