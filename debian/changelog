@@ -1,3 +1,9 @@
+php-prctl (0.1-5) bionic; urgency=low
+
+  * New Sury based debian build
+
+ -- Andras Elso <elso.andras@gmail.com>  Fri, 13 Nov 2020 15:56:30 +0100
+
 php-prctl (0.1-4) bionic; urgency=low
 
   * Add PR_SET_MCE_CLEAR macro
